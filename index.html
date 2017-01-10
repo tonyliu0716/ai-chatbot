@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="tony">
+
+    <title>ChatBot</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script type="text/javascript">
+        // Access Token parameters from API.AI: Smart bot
+        var accessToken = "402d9bfa8aa94119acd297154d34bc47";
+        var baseUrl = "https://api.api.ai/v1/";
+        $(document).ready(function () {
+
+            $("#input").keypress(function (event) {
+                // When use press 'Enter'
+                if (event.which == 13) {
+                    event.preventDefault();
+                    send();
+                }
+            });
+
+            $("#rec").click(function (event) {
+                switchRecognition();
+            });
+
+            //or the user click the 'ask' button
+            $('#ask').click(function () {
+                var inputValue = $("#input").val();
+                if (inputValue != "") {
+                    send();
+                }
+
+            });
+        });
+        var recognition;
+
+        function startRecognition() {
+            recognition = new webkitSpeechRecognition();
+            recognition.onstart = function (event) {
+                updateRec();
+            };
+            recognition.onresult = function (event) {
+                var text = "";
+                for (var i = event.resultIndex; i < event.results.length; ++i) {
+                    text += event.results[i][0].transcript;
+                }
+                setInput(text);
+                stopRecognition();
+            };
+            recognition.onend = function () {
+                stopRecognition();
+            };
+            recognition.lang = "en-US";
+            recognition.start();
+        }
+
+        function stopRecognition() {
+            if (recognition) {
+                recognition.stop();
+                recognition = null;
+            }
+            updateRec();
+        }
+
+        function switchRecognition() {
+            if (recognition) {
+                stopRecognition();
+            } else {
+                startRecognition();
+            }
+        }
+
+        function setInput(text) {
+            $("#input").val(text);
+            send();
+        }
+
+        function updateRec() {
+            $("#rec").text(recognition ? "Stop" : "Speak");
+        }
+
+        function send() {
+            var text = $("#input").val();
+            $.ajax({
+                type: "POST",
+                url: baseUrl + "query?v=20150910",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                headers: {
+                    "Authorization": "Bearer " + accessToken
+                },
+                data: JSON.stringify({
+                    query: text,
+                    lang: "en",
+                    sessionId: "somerandomthing"
+                }),
+                success: function (data) {
+                    setResponse(JSON.stringify(data, undefined, 2));
+                    $("#messages").text(data.result.fulfillment.speech);
+                },
+                error: function () {
+                    setResponse("Internal Server Error");
+                }
+            });
+            setResponse("Loading...");
+
+        }
+
+        function setResponse(val) {
+            $("#response").text(val);
+            // after sent the message, clear the input value
+        }
+    </script>
+    <!-- Bootstrap core CSS -->
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <!-- Custom styles for this template -->
+    <link href="css/style.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+
+    <!-- Just for debugging purposes. Don't actually copy this line! -->
+    <!--[if lt IE 9]><script src="../../js/ie8-responsive-file-warning.js"></script><![endif]-->
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+</head>
+
+<body>
+
+    <!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+
+                <img src="img/robot-icon.png" width="70%" class="img-responsive">
+            </div>
+            <div class="navbar-collapse collapse navbar-right">
+                <ul class="nav navbar-nav">
+                    <li class="active"><a href="index.html">HOME</a></li>
+                </ul>
+            </div>
+            <!--/.nav-collapse -->
+        </div>
+    </div>
+
+    <!-- *****************************************************************************************************************
+	 HEADERWRAP
+	 ***************************************************************************************************************** -->
+    <div id="headerwrap">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2">
+                    <h1>Welcome to my ChatBot application!</h1>
+                    <h4 style="color: white">I am a smart robot was designed to answer the basic questions that you have!</h4>
+                    <h5>Notices: API.AI provide some services like weather or booking api, but need to upgrade.</h5>
+                </div>
+                <div class="col-lg-8 col-lg-offset-2">
+                    <img src="img/robot.png" class="img-responsive">
+                </div>
+                <div class="col-lg-8 col-lg-offset-2">
+                    <div class="input-group">
+                        <input id="input" type="text" class="form-control" placeholder="For example: How are you doing today? Then press 'Enter' or click the button." />
+                        <div class="input-group-btn">
+                            <button id="ask" type="button" class="btn btn-info">
+                                <i class="fa fa-search" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-8 col-lg-offset-2">
+                    <h3>Response from ChatBot</h3>
+                    <img src="https://maxcdn.icons8.com/Color/PNG/48/Industry/robot-48.png" title="Robot" width="48">
+                </div>
+                <div class="col-lg-6 vcenter">
+                    <div class="form-group">
+                        <textarea id="response" class="form-control" rows="10" placeholder="JSON format from API.AI"></textarea>
+                    </div>
+                </div>
+
+                <div class="col-lg-6 vcenter">
+                    <div class="form-group">
+                        <textarea id="messages" class="form-control" rows="10" placeholder="After loop through the messages"></textarea>
+                    </div>
+                </div>
+
+            </div>
+            <!-- /row -->
+        </div>
+        <!-- /container -->
+    </div>
+    <!-- /headerwrap -->
+
+    <div id="portfoliowrap">
+        <h3>LATEST PROJECTS</h3>
+        <h4>You can click the icon below to view my lastest projects.</h4>
+        <div class="portfolio-centered">
+            <div class="recentitems portfolio">
+                <div class="portfolio-item graphic-design">
+                    <div class="he-wrap tpl6">
+                        <img src="img/turtle-quiz.jpg" alt="">
+                        <div class="he-view">
+                            <div class="bg a0" data-animate="fadeIn">
+                                <h3 class="a1" data-animate="fadeInDown">Turtle Quiz Application</h3>
+                                <a href="https://tonyliu0716.github.io/Angular-TurtleQuiz/" class="dmbutton a2" data-animate="fadeInUp"><i class="fa fa-search"></i></a>
+                            </div>
+                            <!-- he bg -->
+                        </div>
+                        <!-- he view -->
+                    </div>
+                    <!-- he wrap -->
+                </div>
+                <!-- end col-12 -->
+
+                <div class="portfolio-item web-design">
+                    <div class="he-wrap tpl6">
+                        <img src="img/portfolio/portfolio_02.jpg" alt="">
+                        <div class="he-view">
+                            <div class="bg a0" data-animate="fadeIn">
+                                <h3 class="a1" data-animate="fadeInDown">My Chat APP</h3>
+                                <a href="https://tonyliu0716.github.io/Angular-FirebaseProject-MyChatAPP/" class="dmbutton a2" data-animate="fadeInUp"><i class="fa fa-search"></i></a>
+                            </div>
+                            <!-- he bg -->
+                        </div>
+                        <!-- he view -->
+                    </div>
+                    <!-- he wrap -->
+                </div>
+                <!-- end col-12 -->
+
+                <div class="portfolio-item graphic-design">
+                    <div class="he-wrap tpl6">
+                        <img src="img/mycontacts.png" alt="">
+                        <div class="he-view">
+                            <div class="bg a0" data-animate="fadeIn">
+                                <h3 class="a1" data-animate="fadeInDown">My Contacts</h3>
+                                <a href="https://tonyliu0716.github.io/Angular-FirebaseProject-myContacts/" class="dmbutton a2" data-animate="fadeInUp"><i class="fa fa-search"></i></a>
+                            </div>
+                            <!-- he bg -->
+                        </div>
+                        <!-- he view -->
+                    </div>
+                    <!-- he wrap -->
+                </div>
+                <!-- end col-12 -->
+
+                <div class="portfolio-item graphic-design">
+                    <div class="he-wrap tpl6">
+                        <img src="img/portfolio/portfolio_04.jpg" alt="">
+                        <div class="he-view">
+                            <div class="bg a0" data-animate="fadeIn">
+                                <h3 class="a1" data-animate="fadeInDown">Search Engine</h3>
+                                <a href="https://tonyliu0716.github.io/AngularMenu/" class="dmbutton a2" data-animate="fadeInUp"><i class="fa fa-search"></i></a>
+                            </div>
+                            <!-- he bg -->
+                        </div>
+                        <!-- he view -->
+                    </div>
+                    <!-- he wrap -->
+                </div>
+                <!-- end col-12 -->
+
+                <div class="portfolio-item books">
+                    <div class="he-wrap tpl6">
+                        <img src="img/smart-bot" alt="">
+                        <div class="he-view">
+                            <div class="bg a0" data-animate="fadeIn">
+                                <h3 class="a1" data-animate="fadeInDown">Smart Chatbot</h3>
+                                <a class="dmbutton a2" data-animate="fadeInUp"><i class="fa fa-search"></i></a>
+                            </div>
+                            <!-- he bg -->
+                        </div>
+                        <!-- he view -->
+                    </div>
+                    <!-- he wrap -->
+                </div>
+                <!-- end col-12 -->
+
+
+                <!-- end col-12 -->
+
+            </div>
+            <!-- portfolio -->
+        </div>
+        <!-- portfolio container -->
+    </div>
+    <!--/Portfoliowrap -->
+
+    <div id="twrap">
+        <div class="container centered">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2">
+                    <i class="fa fa-commenting-o"></i>
+                    <p>My name is Tony Liu, and I am a Java Developer with 5 years experiences. I love learning new knowledge, and I love to play with my friends and games. This is a simple ai application, you can ask many basic questions. I am sorry some functionalities are not working right now. Remember this application only for personal use only. You can try a lot of interesting things! If you are interested in this application, please go ahead and take a look at my GitHub. Welcome fork!</p>
+                    <h4><br/>Tony Liu</h4>
+                    <p>Jave Developer</p>
+                </div>
+            </div>
+            <!--/row -->
+        </div>
+        <!--/container -->
+    </div>
+    <!--/twrap -->
+
+    <!-- *****************************************************************************************************************
+	 FOOTER
+	 ***************************************************************************************************************** -->
+    <div id="footerwrap">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 col-lg-offset-4">
+                    <h4 class="text-center">View My Github Repositories</h4>
+                    <div class="hline-w"></div>
+                    <p class="text-center">
+                        <a href="https://github.com/tonyliu0716"><i class="fa fa-github"></i></a>
+                    </p>
+                </div>
+
+            </div>
+            <! --/row -->
+        </div>
+        <! --/container -->
+    </div>
+    <! --/footerwrap -->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/retina.js/2.1.0/retina.min.js.js"></script>
+    <script src="js/jquery.hoverex.min.js"></script>
+    <script src="js/jquery.prettyPhoto.js"></script>
+    <script src="js/jquery.isotope.min.js"></script>
+    <script src="js/custom.js"></script>
+
+
+    <script>
+        // Portfolio
+        (function ($) {
+            "use strict";
+            var $container = $('.portfolio'),
+                $items = $container.find('.portfolio-item'),
+                portfolioLayout = 'fitRows';
+
+            if ($container.hasClass('portfolio-centered')) {
+                portfolioLayout = 'masonry';
+            }
+
+            $container.isotope({
+                filter: '*',
+                animationEngine: 'best-available',
+                layoutMode: portfolioLayout,
+                animationOptions: {
+                    duration: 750,
+                    easing: 'linear',
+                    queue: false
+                },
+                masonry: {}
+            }, refreshWaypoints());
+
+            function refreshWaypoints() {
+                setTimeout(function () {}, 1000);
+            }
+
+            $('nav.portfolio-filter ul a').on('click', function () {
+                var selector = $(this).attr('data-filter');
+                $container.isotope({
+                    filter: selector
+                }, refreshWaypoints());
+                $('nav.portfolio-filter ul a').removeClass('active');
+                $(this).addClass('active');
+                return false;
+            });
+
+            function getColumnNumber() {
+                var winWidth = $(window).width(),
+                    columnNumber = 1;
+
+                if (winWidth > 1200) {
+                    columnNumber = 5;
+                } else if (winWidth > 950) {
+                    columnNumber = 4;
+                } else if (winWidth > 600) {
+                    columnNumber = 3;
+                } else if (winWidth > 400) {
+                    columnNumber = 2;
+                } else if (winWidth > 250) {
+                    columnNumber = 1;
+                }
+                return columnNumber;
+            }
+
+            function setColumns() {
+                var winWidth = $(window).width(),
+                    columnNumber = getColumnNumber(),
+                    itemWidth = Math.floor(winWidth / columnNumber);
+
+                $container.find('.portfolio-item').each(function () {
+                    $(this).css({
+                        width: itemWidth + 'px'
+                    });
+                });
+            }
+
+            function setPortfolio() {
+                setColumns();
+                $container.isotope('reLayout');
+            }
+
+            $container.imagesLoaded(function () {
+                setPortfolio();
+            });
+
+            $(window).on('resize', function () {
+                setPortfolio();
+            });
+        })(jQuery);
+    </script>
+</body>
+
+</html>
