@@ -9,11 +9,13 @@
 
     <title>ChatBot</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
     <script type="text/javascript">
         // Access Token parameters from API.AI: Smart bot
         var accessToken = "402d9bfa8aa94119acd297154d34bc47";
         var baseUrl = "https://api.api.ai/v1/";
         $(document).ready(function () {
+
 
             $("#input").keypress(function (event) {
                 // When use press 'Enter'
@@ -83,8 +85,13 @@
             $("#rec").text(recognition ? "Stop" : "Speak");
         }
 
+        var speech = "";
+
         function send() {
             var text = $("#input").val();
+            //before send method, clear the weather report and map details
+            $("#api-result-show").hide();
+            $("#api-map-show").hide();
             $.ajax({
                 type: "POST",
                 url: baseUrl + "query?v=20150910",
@@ -100,7 +107,25 @@
                 }),
                 success: function (data) {
                     setResponse(JSON.stringify(data, undefined, 2));
-                    $("#messages").text(data.result.fulfillment.speech);
+                    switch (data.result.action) {
+                    case "get-current-weather":
+                        if (data.result.parameters['geo-city'] !== '') {
+                            //we already have city name
+                            speech = data.result.fulfillment.speech;
+                            differApi(data);
+
+                        } else {
+                            // should response 'In what city?'
+                            $("#messages").text(data.result.fulfillment.speech);
+                        }
+
+                        break;
+
+                    default:
+                        $("#messages").text(data.result.fulfillment.speech);
+                    }
+
+
                 },
                 error: function () {
                     setResponse("Internal Server Error");
@@ -110,18 +135,104 @@
 
         }
 
+
+        //When we are using the third party API
+        function differApi(data) {
+            // switch different cases here:
+            var action = data.result.action;
+
+            switch (action) {
+            case "get-current-weather":
+                var parameters = data.result.parameters;
+                var weatherUrl = "http://api.openweathermap.org/data/2.5/weather?q=";
+                var weatherKey = "&appid=7a89a0b3f307a97cfb724e1029dbcee8";
+                // weather api is involved here:
+                if (parameters.hasOwnProperty('geo-city') && parameters['geo-city'] != '') {
+                    $.ajax({
+                        type: "POST",
+                        url: weatherUrl + parameters['geo-city'] + weatherKey,
+                        dataType: "json",
+                        success: function (data) {
+                            //console.log(data);
+                            $("#messages").text(speech + " " + data.main.temp + "ºF.");
+                            //prepare the data:
+                            $("#weather-city").html(data.name);
+                            $("#weather-city-lon").html(data.coord.lon);
+                            $("#weather-city-lat").html(data.coord.lat);
+                            $("#weather-temp").html(data.main.temp + " ºF");
+                            $("#weather-maxTemp").html(data.main.temp_max);
+                            $("#weather-minTemp").html(data.main.temp_min);
+                            $("#weather-pressure").html(data.main.pressure);
+                            $("#weather-desc").html(data.weather[0].description);
+                            $("#weather-humidity").html(data.main.humidity);
+                            //show weather related dialog:
+                            $("#api-result-show").css("visibility", "visible");
+                            $("#api-result-show").hide().fadeIn(1200);
+
+                            //after that, place the map into div
+                            $("#api-map-show").show();
+                            initMap();
+                            //add class div
+                            $("#api-map-show").css({
+                                "border": "1px solid",
+                                "border-radius": "10px",
+                                "border-color": "bisque"
+                            });
+                        },
+                        error: function () {
+                            setResponse("For some reasons, Weather API is not working right now.");
+                        }
+
+                    });
+                }
+                break;
+
+                //if we have any third party api was involved:
+
+            }
+
+        }
+
         function setResponse(val) {
             $("#response").text(val);
             // after sent the message, clear the input value
         }
+
+        //google map function:
+        function initMap() {
+            var latitude = parseFloat($("#weather-city-lat").html());
+            var longitude = parseFloat($("#weather-city-lon").html());
+            if (isNaN(latitude) || isNaN(longitude)) {
+                return;
+            }
+            console.log(latitude + " " + longitude);
+
+            var myLatLng = {
+                lat: latitude,
+                lng: longitude
+            };
+
+            //create a map object and specify the DOM element for display
+            var map = new google.maps.Map(document.getElementById("api-map-show"), {
+                center: myLatLng,
+                scrollwheel: false,
+                zoom: 8
+            });
+
+            var marker = new google.maps.Marker({
+                map: map,
+                position: myLatLng,
+                title: 'Weather report'
+            });
+        }
     </script>
     <!-- Bootstrap core CSS -->
     <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/bootstrap.css">
 
     <!-- Custom styles for this template -->
     <link href="css/style.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="css/font-awesome.min.css" rel="stylesheet">
 
 
     <!-- Just for debugging purposes. Don't actually copy this line! -->
@@ -168,11 +279,34 @@
                 <div class="col-lg-8 col-lg-offset-2">
                     <h1>Welcome to my ChatBot application!</h1>
                     <h4 style="color: white">I am a smart robot was designed to answer the basic questions that you have!</h4>
-                    <h5>Notices: API.AI provide some services like weather or booking api, but need to upgrade.</h5>
+                    <h5>Notices: Chatbot now support weather related questions!</h5>
                 </div>
-                <div class="col-lg-8 col-lg-offset-2">
+
+                <div class="col-lg-4">
+                    <div id="api-result-show">
+                        <img src="img/weather.png" class="img-responsive">
+
+                        <hr>
+                        <h5>City Name: <span id="weather-city"></span></h5>
+                        <h5>Longtitude: <span id="weather-city-lon"></span></h5>
+                        <h5>Latitude: <span id="weather-city-lat"></span></h5>
+                        <h5>Temperature: <span id="weather-temp"></span></h5>
+                        <h5>Max Temp: <span id="weather-maxTemp"></span></h5>
+                        <h5>Min Temp: <span id="weather-minTemp"></span></h5>
+                        <h5>Pressure: <span id="weather-pressure"></span></h5>
+                        <h5>Description: <span id="weather-desc"></span></h5>
+                        <h5>Humidity: <span id="weather-humidity"></span></h5>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
                     <img src="img/robot.png" class="img-responsive">
                 </div>
+
+                <div id="api-map-show" class="col-lg-4">
+
+                </div>
+
                 <div class="col-lg-8 col-lg-offset-2">
                     <div class="input-group">
                         <input id="input" type="text" class="form-control" placeholder="For example: How are you doing today? Then press 'Enter' or click the button." />
@@ -189,7 +323,7 @@
                 </div>
                 <div class="col-lg-6 vcenter">
                     <div class="form-group">
-                        <textarea id="response" class="form-control" rows="10" placeholder="JSON format from API.AI"></textarea>
+                        <textarea id="response" class="form-control" rows="10" placeholder="JSON format.."></textarea>
                     </div>
                 </div>
 
@@ -340,8 +474,9 @@
 
     <!-- Bootstrap core JavaScript
     ================================================== -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/retina.js/2.1.0/retina.min.js.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB7t0qSYYqoi3fpX0rBnuhiI-OXdw9mTFs&callback=initMap" async defer></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/retina-1.1.0.js"></script>
     <script src="js/jquery.hoverex.min.js"></script>
     <script src="js/jquery.prettyPhoto.js"></script>
     <script src="js/jquery.isotope.min.js"></script>
