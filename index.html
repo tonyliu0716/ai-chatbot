@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="tony">
+
+    <title>ChatBot</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
+    <script type="text/javascript">
+        // Access Token parameters from API.AI: Smart bot
+        var accessToken = "402d9bfa8aa94119acd297154d34bc47";
+        var baseUrl = "https://api.api.ai/v1/";
+        $(document).ready(function () {
+
+
+            $("#input").keypress(function (event) {
+                // When use press 'Enter'
+                if (event.which == 13) {
+                    event.preventDefault();
+                    send();
+                }
+            });
+
+            $("#rec").click(function (event) {
+                switchRecognition();
+            });
+
+            //or the user click the 'ask' button
+            $('#ask').click(function () {
+                var inputValue = $("#input").val();
+                if (inputValue != "") {
+                    send();
+                }
+
+            });
+
+
+
+        });
+        var recognition;
+
+        function startRecognition() {
+            recognition = new webkitSpeechRecognition();
+            recognition.onstart = function (event) {
+                updateRec();
+            };
+            recognition.onresult = function (event) {
+                var text = "";
+                for (var i = event.resultIndex; i < event.results.length; ++i) {
+                    text += event.results[i][0].transcript;
+                }
+                setInput(text);
+                stopRecognition();
+            };
+            recognition.onend = function () {
+                stopRecognition();
+            };
+            recognition.lang = "en-US";
+            recognition.start();
+        }
+
+        function stopRecognition() {
+            if (recognition) {
+                recognition.stop();
+                recognition = null;
+            }
+            updateRec();
+        }
+
+        function switchRecognition() {
+            if (recognition) {
+                stopRecognition();
+            } else {
+                startRecognition();
+            }
+        }
+
+        function setInput(text) {
+            $("#input").val(text);
+            send();
+        }
+
+        function updateRec() {
+            $("#rec").text(recognition ? "Stop" : "Speak");
+        }
+
+        var speech = "";
+
+        function send() {
+            var text = $("#input").val();
+            //before send method, clear the weather report and map details
+            $("#api-result-show").empty();
+            $("#api-result-show").removeClass();
+            $("#api-map-show").empty();
+            $("#api-map-show").removeClass();
+            $.ajax({
+                type: "POST",
+                url: baseUrl + "query?v=20150910",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                headers: {
+                    "Authorization": "Bearer " + accessToken
+                },
+                data: JSON.stringify({
+                    query: text,
+                    lang: "en",
+                    sessionId: "somerandomthing"
+                }),
+                success: function (data) {
+                    setResponse(JSON.stringify(data, undefined, 2));
+                    switch (data.result.action) {
+                    case "get-current-weather":
+                        if (data.result.parameters['geo-city'] !== '') {
+                            //we already have city name
+                            speech = data.result.fulfillment.speech;
+                            $("#api-result-show").append('<img src="img/weather.png" class="img-responsive"><hr><h5>City Name: <span id="weather-city"></span></h5><h5>Longtitude: <span id="weather-city-lon"></span></h5><h5>Latitude: <span id="weather-city-lat"></span></h5><h5>Temperature: <span id="weather-temp"></span></h5><h5>Max Temp: <span id="weather-maxTemp"></span></h5><h5>Min Temp: <span id="weather-minTemp"></span></h5><h5>Pressure: <span id="weather-pressure"></span></h5><h5>Description: <span id="weather-desc"></span></h5><h5>Humidity: <span id="weather-humidity"></span></h5>');
+                            $("#api-result-show").addClass("api-result-show-class");
+                            differApi(data);
+
+                        } else {
+                            // should response 'In what city?'
+                            $("#messages").text(data.result.fulfillment.speech);
+                        }
+
+                        break;
+                        // case "get-current-weather ends here"----------------
+                    case "calculator.currency":
+                        $("#messages").text("Here you go.");
+
+                        $("#api-result-show").append('<br><br><h4 style="color:white">Currency Exchange</h4><hr><div class="input-group"><span class="input-group-addon" id="Amount">Amount</span><input type="text" id="currency_for" class="form-control" placeholder="Input your amount here"><span class="input-group-addon" style="width:0px; padding-left:0px; padding-right:0px; border:none;"></span><select id="currency-country-for" class="form-control"><option value="USD">USD</option><option value="EUR">EUR</option><option value="CNY">CNY</option><option value="JPY">JPY</option><option value="HKD">HKD</option><option value="KRW">KRW</option><option value="DEM">DEM</option><option value="CHF">CHF</option><option value="GBP">GBP</option><option value="FRF">FRF</option><option value="CAD">CAD</option>   </select></div><br><button type="button" class="btn btn-info" id="transfer_money" style="width:60px"><i class="fa fa-exchange"></i></button><hr><div class="input-group"><span class="input-group-addon" id="Amount">Amount</span><input type="text" id="currency_to" class="form-control" placeholder="Here is the amount you expected."><span class="input-group-addon" style="width:0px; padding-left:0px; padding-right:0px; border:none;"></span><select id="currency-country-to" class="form-control"><option value="USD">USD</option><option value="EUR">EUR</option><option value="CNY">CNY</option><option value="JPY">JPY</option><option value="HKD">HKD</option><option value="HKD">KRW</option><option value="DEM">DEM</option><option value="CHF">CHF</option><option value="GBP">GBP</option><option value="FRF">FRF</option><option value="CAD">CAD</option>    </select></div>');
+
+                        //click event for 'transfer' button in Currency Exchange:
+                        $("#transfer_money").click(function () {
+                            var amount = $("#currency_for").val();
+                            if (amount != "") {
+                                //call api:
+                                var currencyFor = $("#currency-country-for").val();
+                                var currencyTo = $("#currency-country-to").val();
+                                $.ajax({
+                                    type: "POST",
+                                    url: "http://rate-exchange-1.appspot.com/currency?from=" + currencyFor + "&to=" + currencyTo,
+                                    contentType: "application/json",
+                                    success: function (data) {
+                                        console.log(data);
+                                    },
+                                    error: function () {
+                                        $("#messages").text("Seems the api has something wrong..");
+                                    }
+                                });
+                            }
+
+                        });
+                        break;
+                        // case "calculator.currency" ends here----------------
+                    default:
+                        $("#messages").text(data.result.fulfillment.speech);
+                    }
+
+
+                },
+                error: function () {
+                    setResponse("Internal Server Error");
+                }
+            });
+            setResponse("Loading...");
+
+        }
+
+
+        //When we are using the third party API
+        function differApi(data) {
+            // switch different cases here:
+            var action = data.result.action;
+
+            switch (action) {
+            case "get-current-weather":
+                var parameters = data.result.parameters;
+                var weatherUrl = "http://api.openweathermap.org/data/2.5/weather?q=";
+                var weatherKey = "&appid=7a89a0b3f307a97cfb724e1029dbcee8";
+                // weather api is involved here:
+                if (parameters.hasOwnProperty('geo-city') && parameters['geo-city'] != '') {
+                    $.ajax({
+                        type: "POST",
+                        url: weatherUrl + parameters['geo-city'] + weatherKey,
+                        dataType: "json",
+                        success: function (data) {
+                            //console.log(data);
+                            $("#messages").text(speech + " " + data.main.temp + "ºF.");
+                            //prepare the data:
+                            $("#weather-city").html(data.name);
+                            $("#weather-city-lon").html(data.coord.lon);
+                            $("#weather-city-lat").html(data.coord.lat);
+                            $("#weather-temp").html(data.main.temp + " ºF");
+                            $("#weather-maxTemp").html(data.main.temp_max + " ºF");
+                            $("#weather-minTemp").html(data.main.temp_min + " ºF");
+                            $("#weather-pressure").html(data.main.pressure);
+                            $("#weather-desc").html(data.weather[0].description);
+                            $("#weather-humidity").html(data.main.humidity);
+                            //show weather related dialog:
+                            $("#api-result-show").css("visibility", "visible");
+                            $("#api-result-show").hide().fadeIn(1200);
+
+                            //after that, place the map into div
+                            $("#api-map-show").addClass("col-lg-4");
+                            $("#api-map-show").addClass("api-map-show-class");
+                            $("#api-map-show").show();
+
+                            setTimeout(initMap(), 1200);
+
+                        },
+                        error: function () {
+                            setResponse("For some reasons, Weather API is not working right now.");
+                        }
+
+                    });
+                }
+                break;
+
+                //if we have any third party api was involved:
+
+            }
+
+        }
+
+        function setResponse(val) {
+            $("#response").text(val);
+            // after sent the message, clear the input value
+        }
+
+        //google map function:
+        function initMap() {
+            var latitude = parseFloat($("#weather-city-lat").html());
+            var longitude = parseFloat($("#weather-city-lon").html());
+            if (isNaN(latitude) || isNaN(longitude)) {
+                return;
+            }
+            console.log(latitude + " " + longitude);
+
+            var myLatLng = {
+                lat: latitude,
+                lng: longitude
+            };
+
+            //create a map object and specify the DOM element for display
+            var map = new google.maps.Map(document.getElementById("api-map-show"), {
+                center: myLatLng,
+                scrollwheel: false,
+                zoom: 8
+            });
+
+            var marker = new google.maps.Marker({
+                map: map,
+                position: myLatLng,
+                title: 'Weather report'
+            });
+        }
+    </script>
+    <!-- Bootstrap core CSS -->
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="css/bootstrap.css">
+
+    <!-- Custom styles for this template -->
+    <link href="css/style.css" rel="stylesheet">
+    <link href="css/font-awesome.min.css" rel="stylesheet">
+
+
+    <!-- Just for debugging purposes. Don't actually copy this line! -->
+    <!--[if lt IE 9]><script src="../../js/ie8-responsive-file-warning.js"></script><![endif]-->
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+</head>
+
+<body>
+
+    <!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+
+                <img src="img/robot-icon.png" width="70%" class="img-responsive">
+            </div>
+            <div class="navbar-collapse collapse navbar-right">
+                <ul class="nav navbar-nav">
+                    <li class="active"><a href="index.html">HOME</a></li>
+                </ul>
+            </div>
+            <!--/.nav-collapse -->
+        </div>
+    </div>
+
+    <!-- *****************************************************************************************************************
+	 HEADERWRAP
+	 ***************************************************************************************************************** -->
+    <div id="headerwrap">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2">
+                    <h1>Welcome to my ChatBot application!</h1>
+                    <h4 style="color: white">I am a smart robot was designed to answer the basic questions that you have!</h4>
+                    <h5>Notices: Chatbot now support weather related questions!</h5>
+                </div>
+
+                <div class="col-lg-4">
+                    <div id="api-result-show">
+
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <img src="img/robot.png" class="img-responsive">
+                </div>
+
+                <div id="api-map-show" class="col-lg-4">
+
+                </div>
+
+                <div class="col-lg-8 col-lg-offset-2">
+                    <div class="input-group">
+                        <input id="input" type="text" class="form-control" placeholder="For example: How are you doing today? Then press 'Enter' or click the button." />
+                        <div class="input-group-btn">
+                            <button id="ask" type="button" class="btn btn-info">
+                                <i class="fa fa-search" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-8 col-lg-offset-2">
+                    <h3>Response from ChatBot</h3>
+                    <img src="https://maxcdn.icons8.com/Color/PNG/48/Industry/robot-48.png" title="Robot" width="48">
+                </div>
+                <div class="col-lg-6 vcenter">
+                    <div class="form-group">
+                        <textarea id="response" class="form-control" rows="10" placeholder="JSON format.."></textarea>
+                    </div>
+                </div>
+
+                <div class="col-lg-6 vcenter">
+                    <div class="form-group">
+                        <textarea id="messages" class="form-control" rows="10" placeholder="After loop through the messages"></textarea>
+                    </div>
+                </div>
+
+            </div>
+            <!-- /row -->
+        </div>
+        <!-- /container -->
+    </div>
+    <!-- /headerwrap -->
+
+    <div id="portfoliowrap">
+        <h3>LATEST PROJECTS</h3>
+        <h4>You can click the icon below to view my lastest projects.</h4>
+        <div class="portfolio-centered">
+            <div class="recentitems portfolio">
+                <div class="portfolio-item graphic-design">
+                    <div class="he-wrap tpl6">
+                        <img src="img/turtle-quiz.jpg" alt="">
+                        <div class="he-view">
+                            <div class="bg a0" data-animate="fadeIn">
+                                <h3 class="a1" data-animate="fadeInDown">Turtle Quiz Application</h3>
+                                <a href="https://tonyliu0716.github.io/Angular-TurtleQuiz/" class="dmbutton a2" data-animate="fadeInUp"><i class="fa fa-search"></i></a>
+                            </div>
+                            <!-- he bg -->
+                        </div>
+                        <!-- he view -->
+                    </div>
+                    <!-- he wrap -->
+                </div>
+                <!-- end col-12 -->
+
+                <div class="portfolio-item web-design">
+                    <div class="he-wrap tpl6">
+                        <img src="img/portfolio/portfolio_02.jpg" alt="">
+                        <div class="he-view">
+                            <div class="bg a0" data-animate="fadeIn">
+                                <h3 class="a1" data-animate="fadeInDown">My Chat APP</h3>
+                                <a href="https://tonyliu0716.github.io/Angular-FirebaseProject-MyChatAPP/" class="dmbutton a2" data-animate="fadeInUp"><i class="fa fa-search"></i></a>
+                            </div>
+                            <!-- he bg -->
+                        </div>
+                        <!-- he view -->
+                    </div>
+                    <!-- he wrap -->
+                </div>
+                <!-- end col-12 -->
+
+                <div class="portfolio-item graphic-design">
+                    <div class="he-wrap tpl6">
+                        <img src="img/mycontacts.png" alt="">
+                        <div class="he-view">
+                            <div class="bg a0" data-animate="fadeIn">
+                                <h3 class="a1" data-animate="fadeInDown">My Contacts</h3>
+                                <a href="https://tonyliu0716.github.io/Angular-FirebaseProject-myContacts/" class="dmbutton a2" data-animate="fadeInUp"><i class="fa fa-search"></i></a>
+                            </div>
+                            <!-- he bg -->
+                        </div>
+                        <!-- he view -->
+                    </div>
+                    <!-- he wrap -->
+                </div>
+                <!-- end col-12 -->
+
+                <div class="portfolio-item graphic-design">
+                    <div class="he-wrap tpl6">
+                        <img src="img/portfolio/portfolio_04.jpg" alt="">
+                        <div class="he-view">
+                            <div class="bg a0" data-animate="fadeIn">
+                                <h3 class="a1" data-animate="fadeInDown">Search Engine</h3>
+                                <a href="https://tonyliu0716.github.io/AngularMenu/" class="dmbutton a2" data-animate="fadeInUp"><i class="fa fa-search"></i></a>
+                            </div>
+                            <!-- he bg -->
+                        </div>
+                        <!-- he view -->
+                    </div>
+                    <!-- he wrap -->
+                </div>
+                <!-- end col-12 -->
+
+                <div class="portfolio-item books">
+                    <div class="he-wrap tpl6">
+                        <img src="img/smart-bot" alt="">
+                        <div class="he-view">
+                            <div class="bg a0" data-animate="fadeIn">
+                                <h3 class="a1" data-animate="fadeInDown">Smart Chatbot</h3>
+                                <a class="dmbutton a2" data-animate="fadeInUp"><i class="fa fa-search"></i></a>
+                            </div>
+                            <!-- he bg -->
+                        </div>
+                        <!-- he view -->
+                    </div>
+                    <!-- he wrap -->
+                </div>
+                <!-- end col-12 -->
+
+
+                <!-- end col-12 -->
+
+            </div>
+            <!-- portfolio -->
+        </div>
+        <!-- portfolio container -->
+    </div>
+    <!--/Portfoliowrap -->
+
+    <div id="twrap">
+        <div class="container centered">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2">
+                    <img src="img/me.png" />
+                    <p>My name is Tony Liu, and I am a Java Developer with 5 years experiences. I love learning new knowledge, and I love to play with my friends and games. This is a simple ai application, you can ask many basic questions. I am sorry some functionalities are not working right now. Remember this application only for personal use only. You can try a lot of interesting things! If you are interested in this application, please go ahead and take a look at my GitHub. Welcome fork!</p>
+                    <h4><br/>Tony Liu</h4>
+                    <p>Jave Developer</p>
+                </div>
+            </div>
+            <!--/row -->
+        </div>
+        <!--/container -->
+    </div>
+    <!--/twrap -->
+
+    <!-- *****************************************************************************************************************
+	 FOOTER
+	 ***************************************************************************************************************** -->
+    <div id="footerwrap">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 col-lg-offset-4">
+                    <h4 class="text-center">View My Github Repositories to see more java projects</h4>
+                    <div class="hline-w"></div>
+                    <p class="text-center">
+                        <a href="https://github.com/tonyliu0716"><i class="fa fa-github"></i></a>
+                    </p>
+                </div>
+
+            </div>
+            <! --/row -->
+        </div>
+        <! --/container -->
+    </div>
+    <! --/footerwrap -->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB7t0qSYYqoi3fpX0rBnuhiI-OXdw9mTFs&callback=initMap" async defer></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/retina-1.1.0.js"></script>
+    <script src="js/jquery.hoverex.min.js"></script>
+    <script src="js/jquery.prettyPhoto.js"></script>
+    <script src="js/jquery.isotope.min.js"></script>
+    <script src="js/custom.js"></script>
+
+
+    <script>
+        // Portfolio
+        (function ($) {
+            "use strict";
+            var $container = $('.portfolio'),
+                $items = $container.find('.portfolio-item'),
+                portfolioLayout = 'fitRows';
+
+            if ($container.hasClass('portfolio-centered')) {
+                portfolioLayout = 'masonry';
+            }
+
+            $container.isotope({
+                filter: '*',
+                animationEngine: 'best-available',
+                layoutMode: portfolioLayout,
+                animationOptions: {
+                    duration: 750,
+                    easing: 'linear',
+                    queue: false
+                },
+                masonry: {}
+            }, refreshWaypoints());
+
+            function refreshWaypoints() {
+                setTimeout(function () {}, 1000);
+            }
+
+            $('nav.portfolio-filter ul a').on('click', function () {
+                var selector = $(this).attr('data-filter');
+                $container.isotope({
+                    filter: selector
+                }, refreshWaypoints());
+                $('nav.portfolio-filter ul a').removeClass('active');
+                $(this).addClass('active');
+                return false;
+            });
+
+            function getColumnNumber() {
+                var winWidth = $(window).width(),
+                    columnNumber = 1;
+
+                if (winWidth > 1200) {
+                    columnNumber = 5;
+                } else if (winWidth > 950) {
+                    columnNumber = 4;
+                } else if (winWidth > 600) {
+                    columnNumber = 3;
+                } else if (winWidth > 400) {
+                    columnNumber = 2;
+                } else if (winWidth > 250) {
+                    columnNumber = 1;
+                }
+                return columnNumber;
+            }
+
+            function setColumns() {
+                var winWidth = $(window).width(),
+                    columnNumber = getColumnNumber(),
+                    itemWidth = Math.floor(winWidth / columnNumber);
+
+                $container.find('.portfolio-item').each(function () {
+                    $(this).css({
+                        width: itemWidth + 'px'
+                    });
+                });
+            }
+
+            function setPortfolio() {
+                setColumns();
+                $container.isotope('reLayout');
+            }
+
+            $container.imagesLoaded(function () {
+                setPortfolio();
+            });
+
+            $(window).on('resize', function () {
+                setPortfolio();
+            });
+        })(jQuery);
+    </script>
+</body>
+
+</html>
