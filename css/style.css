@@ -461,7 +461,7 @@ csmall2 {
     font-size: 18px;
 }
 
-#api-result-show {
+.api-result-show-class {
     border: 1px solid;
     border-radius: 10px;
     border-color: bisque;
@@ -469,6 +469,9 @@ csmall2 {
     visibility: hidden;
 }
 
-#api-map-show {
+.api-map-show-class {
     height: 332px;
+    border: 1px solid;
+    border-radius: 10px;
+    border-color: bisque
 }

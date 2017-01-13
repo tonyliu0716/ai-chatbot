@@ -37,6 +37,9 @@
                 }
 
             });
+
+
+
         });
         var recognition;
 
@@ -90,8 +93,10 @@
         function send() {
             var text = $("#input").val();
             //before send method, clear the weather report and map details
-            $("#api-result-show").hide();
-            $("#api-map-show").hide();
+            $("#api-result-show").empty();
+            $("#api-result-show").removeClass();
+            $("#api-map-show").empty();
+            $("#api-map-show").removeClass();
             $.ajax({
                 type: "POST",
                 url: baseUrl + "query?v=20150910",
@@ -112,6 +117,8 @@
                         if (data.result.parameters['geo-city'] !== '') {
                             //we already have city name
                             speech = data.result.fulfillment.speech;
+                            $("#api-result-show").append('<img src="img/weather.png" class="img-responsive"><hr><h5>City Name: <span id="weather-city"></span></h5><h5>Longtitude: <span id="weather-city-lon"></span></h5><h5>Latitude: <span id="weather-city-lat"></span></h5><h5>Temperature: <span id="weather-temp"></span></h5><h5>Max Temp: <span id="weather-maxTemp"></span></h5><h5>Min Temp: <span id="weather-minTemp"></span></h5><h5>Pressure: <span id="weather-pressure"></span></h5><h5>Description: <span id="weather-desc"></span></h5><h5>Humidity: <span id="weather-humidity"></span></h5>');
+                            $("#api-result-show").addClass("api-result-show-class");
                             differApi(data);
 
                         } else {
@@ -120,7 +127,35 @@
                         }
 
                         break;
+                        // case "get-current-weather ends here"----------------
+                    case "calculator.currency":
+                        $("#messages").text("Here you go.");
 
+                        $("#api-result-show").append('<br><br><h4 style="color:white">Currency Exchange</h4><hr><div class="input-group"><span class="input-group-addon" id="Amount">Amount</span><input type="text" id="currency_for" class="form-control" placeholder="Input your amount here"><span class="input-group-addon" style="width:0px; padding-left:0px; padding-right:0px; border:none;"></span><select id="currency-country-for" class="form-control"><option value="USD">USD</option><option value="EUR">EUR</option><option value="CNY">CNY</option><option value="JPY">JPY</option><option value="HKD">HKD</option><option value="KRW">KRW</option><option value="DEM">DEM</option><option value="CHF">CHF</option><option value="GBP">GBP</option><option value="FRF">FRF</option><option value="CAD">CAD</option>   </select></div><br><button type="button" class="btn btn-info" id="transfer_money" style="width:60px"><i class="fa fa-exchange"></i></button><hr><div class="input-group"><span class="input-group-addon" id="Amount">Amount</span><input type="text" id="currency_to" class="form-control" placeholder="Here is the amount you expected."><span class="input-group-addon" style="width:0px; padding-left:0px; padding-right:0px; border:none;"></span><select id="currency-country-to" class="form-control"><option value="USD">USD</option><option value="EUR">EUR</option><option value="CNY">CNY</option><option value="JPY">JPY</option><option value="HKD">HKD</option><option value="HKD">KRW</option><option value="DEM">DEM</option><option value="CHF">CHF</option><option value="GBP">GBP</option><option value="FRF">FRF</option><option value="CAD">CAD</option>    </select></div>');
+
+                        //click event for 'transfer' button in Currency Exchange:
+                        $("#transfer_money").click(function () {
+                            var amount = $("#currency_for").val();
+                            if (amount != "") {
+                                //call api:
+                                var currencyFor = $("#currency-country-for").val();
+                                var currencyTo = $("#currency-country-to").val();
+                                $.ajax({
+                                    type: "POST",
+                                    url: "http://rate-exchange-1.appspot.com/currency?from=" + currencyFor + "&to=" + currencyTo,
+                                    contentType: "application/json",
+                                    success: function (data) {
+                                        console.log(data);
+                                    },
+                                    error: function () {
+                                        $("#messages").text("Seems the api has something wrong..");
+                                    }
+                                });
+                            }
+
+                        });
+                        break;
+                        // case "calculator.currency" ends here----------------
                     default:
                         $("#messages").text(data.result.fulfillment.speech);
                     }
@@ -160,8 +195,8 @@
                             $("#weather-city-lon").html(data.coord.lon);
                             $("#weather-city-lat").html(data.coord.lat);
                             $("#weather-temp").html(data.main.temp + " ºF");
-                            $("#weather-maxTemp").html(data.main.temp_max);
-                            $("#weather-minTemp").html(data.main.temp_min);
+                            $("#weather-maxTemp").html(data.main.temp_max + " ºF");
+                            $("#weather-minTemp").html(data.main.temp_min + " ºF");
                             $("#weather-pressure").html(data.main.pressure);
                             $("#weather-desc").html(data.weather[0].description);
                             $("#weather-humidity").html(data.main.humidity);
@@ -170,14 +205,12 @@
                             $("#api-result-show").hide().fadeIn(1200);
 
                             //after that, place the map into div
+                            $("#api-map-show").addClass("col-lg-4");
+                            $("#api-map-show").addClass("api-map-show-class");
                             $("#api-map-show").show();
-                            initMap();
-                            //add class div
-                            $("#api-map-show").css({
-                                "border": "1px solid",
-                                "border-radius": "10px",
-                                "border-color": "bisque"
-                            });
+
+                            setTimeout(initMap(), 1200);
+
                         },
                         error: function () {
                             setResponse("For some reasons, Weather API is not working right now.");
@@ -284,18 +317,7 @@
 
                 <div class="col-lg-4">
                     <div id="api-result-show">
-                        <img src="img/weather.png" class="img-responsive">
 
-                        <hr>
-                        <h5>City Name: <span id="weather-city"></span></h5>
-                        <h5>Longtitude: <span id="weather-city-lon"></span></h5>
-                        <h5>Latitude: <span id="weather-city-lat"></span></h5>
-                        <h5>Temperature: <span id="weather-temp"></span></h5>
-                        <h5>Max Temp: <span id="weather-maxTemp"></span></h5>
-                        <h5>Min Temp: <span id="weather-minTemp"></span></h5>
-                        <h5>Pressure: <span id="weather-pressure"></span></h5>
-                        <h5>Description: <span id="weather-desc"></span></h5>
-                        <h5>Humidity: <span id="weather-humidity"></span></h5>
                     </div>
                 </div>
 
@@ -439,7 +461,7 @@
         <div class="container centered">
             <div class="row">
                 <div class="col-lg-8 col-lg-offset-2">
-                    <i class="fa fa-commenting-o"></i>
+                    <img src="img/me.png" />
                     <p>My name is Tony Liu, and I am a Java Developer with 5 years experiences. I love learning new knowledge, and I love to play with my friends and games. This is a simple ai application, you can ask many basic questions. I am sorry some functionalities are not working right now. Remember this application only for personal use only. You can try a lot of interesting things! If you are interested in this application, please go ahead and take a look at my GitHub. Welcome fork!</p>
                     <h4><br/>Tony Liu</h4>
                     <p>Jave Developer</p>
@@ -458,7 +480,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-4 col-lg-offset-4">
-                    <h4 class="text-center">View My Github Repositories</h4>
+                    <h4 class="text-center">View My Github Repositories to see more java projects</h4>
                     <div class="hline-w"></div>
                     <p class="text-center">
                         <a href="https://github.com/tonyliu0716"><i class="fa fa-github"></i></a>
