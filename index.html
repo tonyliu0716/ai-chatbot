@@ -48,7 +48,7 @@
                 showCursor: false,
                 callback: function () {
                     $("#button-cat-group").css("visibility", "visible");
-                    $("#button-cat-group").append("<button onClick='conButton()' type='button' class='btn btn-secondary'><i class='fa fa-comments-o'></i>&nbsp;Conversation</button>  <button onClick='weatherButton()' type='button' class='btn btn-success'><i class='fa fa-sun-o'></i>&nbsp;Weather</button>  <button onClick='currencyButton()' type='button' class='btn btn-info'><i class='fa fa-usd'></i>&nbsp;Currency</button> <button onClick='stockButton()' type='button' class='btn btn-warning'><i class='fa fa-line-chart'></i>&nbsp;Stock Quotes</button> ");
+                    $("#button-cat-group").append("<button onClick='conButton()' type='button' class='btn btn-secondary'><i class='fa fa-comments-o'></i>&nbsp;Conversation</button>  <button onClick='weatherButton()' type='button' class='btn btn-success'><i class='fa fa-sun-o'></i>&nbsp;Weather</button>  <button onClick='currencyButton()' type='button' class='btn btn-info'><i class='fa fa-usd'></i>&nbsp;Currency</button> <button onClick='stockButton()' type='button' class='btn btn-warning'><i class='fa fa-line-chart'></i>&nbsp;Stock Quotes</button> <button onClick='fixErrorButton()' id='error-fix' class='btn btn-danger' type='button'><i class='fa fa-shield'></i>&nbsp;Fix Error</button>");
                     $("#button-cat-group").hide().fadeIn(1500);
 
                 }
@@ -94,6 +94,16 @@
             $(".element").typed('reset');
             $(".element").typed({
                 strings: ["<h4 style='color: white; text-align: center'>Example: Stock quotes, please. </h4>"],
+                contentType: 'html',
+                typeSpeed: 7,
+                showCursor: false
+            });
+        }
+
+        function fixErrorButton() {
+            $(".element").typed('reset');
+            $(".element").typed({
+                strings: ["<h4 style='color: white; text-align: center'>Example: Weather api seems not working right now.</h4>", "<h4 style='color: white; text-align: center'>Try to fix that by clicking 'Load unsafe script' on the right-hand sidebar of your Chrome.</h4>"],
                 contentType: 'html',
                 typeSpeed: 7,
                 showCursor: false
