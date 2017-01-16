@@ -9,12 +9,14 @@
 
     <title>ChatBot</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-
+    <script type="text/javascript" src="js/typed.js"></script>
     <script type="text/javascript">
         // Access Token parameters from API.AI: Smart bot
         var accessToken = "402d9bfa8aa94119acd297154d34bc47";
         var baseUrl = "https://api.api.ai/v1/";
         $(document).ready(function () {
+
+            //prepare modal for the Login or Sign up button
 
 
             $("#input").keypress(function (event) {
@@ -38,9 +40,67 @@
 
             });
 
+            //for typing.js default
+            $(".element").typed({
+                strings: ["<h4 style='color: white; text-align: center'>My name is ^400 ChatBot. </h4>", "<h4 style='color: white'>Designed to answer the basic questions ^500 that you have!</h4>", "<h4 style='color: white'>Now I support :</h4>^1000", "<h4 style='color:white'>Weather ^500 related questions,</h4>", "<h4 style='color:white'>Currency Exchange Rates ^500 related questions,</h4>", "<h4 style='color:white'>Stock Quotes Search.</h4>", "<h4 style='color:white'>Try it out today!</h4>"],
+                contentType: 'html',
+                typeSpeed: 7,
+                showCursor: false,
+                callback: function () {
+                    $("#button-cat-group").css("visibility", "visible");
+                    $("#button-cat-group").append("<button onClick='conButton()' type='button' class='btn btn-secondary'><i class='fa fa-comments-o'></i>&nbsp;Conversation</button>  <button onClick='weatherButton()' type='button' class='btn btn-success'><i class='fa fa-sun-o'></i>&nbsp;Weather</button>  <button onClick='currencyButton()' type='button' class='btn btn-info'><i class='fa fa-usd'></i>&nbsp;Currency</button> <button onClick='stockButton()' type='button' class='btn btn-warning'><i class='fa fa-line-chart'></i>&nbsp;Stock Quotes</button> ");
+                    $("#button-cat-group").hide().fadeIn(1500);
+
+                }
+            });
+
 
 
         });
+
+
+        // conversation button and more start from here======================
+        function conButton() {
+            $(".element").typed('reset');
+            $(".element").typed({
+                strings: ["<h4 style='color: white; text-align: center'>Example: How are you or I have a dog. </h4>"],
+                contentType: 'html',
+                typeSpeed: 7,
+                showCursor: false
+            });
+        }
+
+        function weatherButton() {
+            $(".element").typed('reset');
+            $(".element").typed({
+                strings: ["<h4 style='color: white; text-align: center'>Example: How's the weather like in Dallas? </h4>"],
+                contentType: 'html',
+                typeSpeed: 7,
+                showCursor: false
+            });
+        }
+
+        function currencyButton() {
+            $(".element").typed('reset');
+            $(".element").typed({
+                strings: ["<h4 style='color: white; text-align: center'>Example: Currency exchange rates, please. </h4>"],
+                contentType: 'html',
+                typeSpeed: 7,
+                showCursor: false
+            });
+        }
+
+        function stockButton() {
+            $(".element").typed('reset');
+            $(".element").typed({
+                strings: ["<h4 style='color: white; text-align: center'>Example: Stock quotes, please. </h4>"],
+                contentType: 'html',
+                typeSpeed: 7,
+                showCursor: false
+            });
+        }
+
+        //conversation button ends here=========================================
         var recognition;
 
         function startRecognition() {
@@ -95,8 +155,12 @@
             //before send method, clear the weather report and map details
             $("#api-result-show").empty();
             $("#api-result-show").removeClass();
+            $("#myChart").removeClass();
             $("#api-map-show").empty();
             $("#api-map-show").removeClass();
+
+            //console.log($("#api-map-show").attr("class").split(' '));
+
             $.ajax({
                 type: "POST",
                 url: baseUrl + "query?v=20150910",
@@ -129,33 +193,212 @@
                         break;
                         // case "get-current-weather ends here"----------------
                     case "calculator.currency":
-                        $("#messages").text("Here you go.");
+                        $("#messages").text(data.result.fulfillment.speech);
 
-                        $("#api-result-show").append('<br><br><h4 style="color:white">Currency Exchange</h4><hr><div class="input-group"><span class="input-group-addon" id="Amount">Amount</span><input type="text" id="currency_for" class="form-control" placeholder="Input your amount here"><span class="input-group-addon" style="width:0px; padding-left:0px; padding-right:0px; border:none;"></span><select id="currency-country-for" class="form-control"><option value="USD">USD</option><option value="EUR">EUR</option><option value="CNY">CNY</option><option value="JPY">JPY</option><option value="HKD">HKD</option><option value="KRW">KRW</option><option value="DEM">DEM</option><option value="CHF">CHF</option><option value="GBP">GBP</option><option value="FRF">FRF</option><option value="CAD">CAD</option>   </select></div><br><button type="button" class="btn btn-info" id="transfer_money" style="width:60px"><i class="fa fa-exchange"></i></button><hr><div class="input-group"><span class="input-group-addon" id="Amount">Amount</span><input type="text" id="currency_to" class="form-control" placeholder="Here is the amount you expected."><span class="input-group-addon" style="width:0px; padding-left:0px; padding-right:0px; border:none;"></span><select id="currency-country-to" class="form-control"><option value="USD">USD</option><option value="EUR">EUR</option><option value="CNY">CNY</option><option value="JPY">JPY</option><option value="HKD">HKD</option><option value="HKD">KRW</option><option value="DEM">DEM</option><option value="CHF">CHF</option><option value="GBP">GBP</option><option value="FRF">FRF</option><option value="CAD">CAD</option>    </select></div>');
+                        $("#api-result-show").append('<br><br><h4 style="color:white">Currency Exchange</h4><hr><div class="input-group"><span class="input-group-addon" id="Amount">Amount</span><input type="text" id="currency_for" class="form-control" placeholder="Input your amount here"><span class="input-group-addon" style="width:0px; padding-left:0px; padding-right:0px; border:none;"></span><select id="currency-country-for" class="form-control"><option value="USD">USD</option><option value="EUR">EUR</option><option value="CNY">CNY</option><option value="AUD">AUD</option><option value="HKD">HKD</option><option value="HRK">HRK</option><option value="DKK">DKK</option><option value="CHF">CHF</option><option value="GBP">GBP</option><option value="CAD">CAD</option>   </select></div><br><button type="button" class="btn btn-info" id="transfer_money" style="width:60px"><i class="fa fa-exchange"></i></button><hr><div class="input-group"><span class="input-group-addon" id="Amount">Amount</span><input type="text" id="currency_to" class="form-control" placeholder="Here is the amount you expected."><span class="input-group-addon" style="width:0px; padding-left:0px; padding-right:0px; border:none;"></span><select id="currency-country-to" class="form-control"><option value="USD">USD</option><option value="EUR">EUR</option><option value="CNY">CNY</option><option value="AUD">AUD</option><option value="HKD">HKD</option><option value="HRK">HRK</option><option value="CHF">CHF</option><option value="GBP">GBP</option><option value="DKK">DKK</option><option value="CAD">CAD</option>    </select></div>');
 
                         //click event for 'transfer' button in Currency Exchange:
                         $("#transfer_money").click(function () {
+                            //$("#api-map-show").empty();
                             var amount = $("#currency_for").val();
                             if (amount != "") {
                                 //call api:
                                 var currencyFor = $("#currency-country-for").val();
                                 var currencyTo = $("#currency-country-to").val();
                                 $.ajax({
-                                    type: "POST",
+                                    type: "GET",
                                     url: "http://rate-exchange-1.appspot.com/currency?from=" + currencyFor + "&to=" + currencyTo,
-                                    contentType: "application/json",
+                                    dataType: "jsonp",
+                                    crossDomain: true,
                                     success: function (data) {
-                                        console.log(data);
+                                        $("#currency_to").val(data.rate * parseInt($("#currency_for").val()));
+                                        //show chat.js on div "api-map-show"
+
+
+                                        // array for country
+                                        var countryArray = ['USD', 'EUR', 'CNY', 'AUD', 'HKD', 'HRK', 'DKK', 'CHF', 'GBP', 'CAD'];
+
+
+                                        // array for rates
+                                        var ratesArray = [];
+
+                                        function getData() {
+                                            var defer = $.Deferred();
+                                            //get data from api.fixer.io
+                                            $.ajax({
+                                                type: 'GET',
+                                                url: "http://api.fixer.io/latest?base=" + currencyFor,
+                                                dataType: 'jsonp',
+                                                crossDomain: true,
+
+                                                success: function (data) {
+                                                    //prepare the container
+                                                    $("#api-map-show").empty();
+                                                    $("#api-map-show").removeClass();
+                                                    //console.log(currencyArray);
+                                                    //find the value for country:
+                                                    for (var i = 0; i < countryArray.length; i++) {
+                                                        if (typeof data.rates[countryArray[i]] == 'undefined') {
+                                                            ratesArray.push(1);
+                                                        } else {
+                                                            ratesArray.push(data.rates[countryArray[i]]);
+                                                        }
+                                                    }
+                                                    defer.resolve(ratesArray);
+                                                },
+                                                error: function () {
+                                                    console.log("Involved api.fixer.io caused a error...");
+                                                }
+                                            });
+                                            return defer.promise();
+
+                                        }
+                                        //when getData function is done, we start to create the chart:
+                                        $.when(getData()).done(function (data) {
+
+                                            $("#api-map-show").addClass("col-lg-4");
+                                            $("#api-map-show").append('<canvas id="myChart" class="chart-show-class"></canvas>');
+                                            var ctx = document.getElementById("myChart").getContext('2d');
+                                            var myChart = new Chart(ctx, {
+                                                type: 'bar',
+                                                data: {
+                                                    labels: countryArray,
+                                                    datasets: [{
+                                                        label: "1 " + currencyFor,
+                                                        hoverBackgroundColor: "rgba(232,105,90,0.8)",
+                                                        data: ratesArray,
+                                                        backgroundColor: "rgb(160, 237, 176)"
+                                                }]
+                                                },
+                                                options: {
+                                                    maintainAspectRatio: false,
+                                                    responsive: true,
+                                                    legend: {
+                                                        labels: {
+                                                            fontColor: "white",
+                                                            fontSize: 18
+                                                        }
+                                                    },
+                                                    scales: {
+                                                        yAxes: [{
+                                                            ticks: {
+                                                                fontColor: "white",
+                                                                fontSize: 10,
+                                                                stepSize: 1,
+                                                                beginAtZero: true
+                                                            }
+                                            }],
+                                                        xAxes: [{
+                                                            ticks: {
+                                                                fontColor: "white",
+                                                                fontSize: 10,
+                                                                stepSize: 2,
+                                                                beginAtZero: true
+                                                            }
+                                            }]
+                                                    }
+                                                }
+                                            });
+                                            //
+                                            $("#api-map-show").css("height", "330px");
+                                        });
+
                                     },
                                     error: function () {
                                         $("#messages").text("Seems the api has something wrong..");
                                     }
                                 });
+
+
+
                             }
 
                         });
                         break;
-                        // case "calculator.currency" ends here----------------
+                        // case "calculator.currency" ends here========================
+
+
+                        // here is get-stock-quoteds begin =============================
+                    case "get-stock-quotes":
+                        //clear the api-map-show area:
+                        $("#api-map-show").empty();
+
+                        //console.log("I am stock quotes...");
+                        $("#messages").text(data.result.fulfillment.speech);
+                        $("#api-result-show").append('<br><br><h4 style="color:white">Stock Quotes Search</h4><strong style="color:aquamarine">Support more than 3000 companies!</strong><hr><div class="input-group"><span class="input-group-addon">Code</span><input type="text" name="team" id="company" class="form-control" placeholder="Input your amount here" list="company-list"><span class="input-group-addon" style="width:0px; padding-left:0px; padding-right:0px; border:none;"></span><datalist id="company-list"></datalist><span class="input-group-btn"><button id="search-quotes" class="btn btn-info" type="button"><i class="fa fa-search"></i></button></span></div><br><button id="clear" type="button" class="btn btn-warning">Clear</button>');
+
+                        //start to call the ajax method then get a list of company.
+                        var companyName = [];
+                        var companySymbol = [];
+                        var companyAllData = [];
+                        $.ajax({
+                            type: "GET",
+                            url: "https://cdn.rawgit.com/tonyliu0716/ai-chatbot/gh-pages/companylist.json",
+                            crossDomain: true,
+                            dataType: "json",
+                            cache: true,
+                            success: function (data) {
+                                companyAllData = data;
+                                for (var i = 0; i < data.length; i++) {
+                                    var company = data[i];
+                                    companyName.push(company.Name);
+                                    companySymbol.push(company.Symbol);
+                                }
+                                var str = '';
+                                //the second for loop for insert the <option> element into datalist
+                                for (var i = 0; i < companyName.length; i++) {
+                                    str += ('<option value="' + companySymbol[i] + " - " + companyName[i] + '" />');
+                                }
+                                $("#company-list").html(str);
+                            },
+                            error: function () {
+                                $("#messages").text("Some errors happen when I tried to read json file.");
+                            }
+                        });
+
+                        //if the user click the clear button
+                        $("#clear").click(function () {
+                            $("#company").val('');
+                        });
+                        //Once the user click the button:
+                        $("#search-quotes").click(function () {
+                            $("#api-map-show").empty();
+
+                            var fullCompany = $("#company").val();
+                            var sign = '';
+                            for (var i = 0; i < fullCompany.length; i++) {
+                                if (fullCompany[i] !== ' ') {
+                                    sign += fullCompany[i];
+                                } else {
+                                    break;
+                                }
+                            }
+                            var marketCap = '';
+                            var ipoYear = '';
+                            var sector = '';
+                            var industry = '';
+                            var summaryQuote = '';
+                            //find all the information for the selected company:
+                            for (var i = 0; i < companyAllData.length; i++) {
+                                if (companyAllData[i].Symbol == sign) {
+                                    marketCap = companyAllData[i].MarketCap;
+                                    ipoYear = companyAllData[i].IPOyear;
+                                    sector = companyAllData[i].Sector;
+                                    industry = companyAllData[i].industry;
+                                    summaryQuote = companyAllData[i]['Summary Quote'];
+                                    console.log(marketCap + ", " + ipoYear + ", " + sector + ", " + industry + ", " + summaryQuote);
+                                    break;
+                                }
+                            }
+                            //now start to load the api-map-show div
+                            var trendMap = "http://chart.finance.yahoo.com/t?s=" + sign + "&lang=en-US&region=US&width=360&height=140";
+                            var historyMap = "http://chart.finance.yahoo.com/z?s=" + sign;
+                            $("#api-map-show").addClass("col-lg-4");
+                            $("#api-map-show").append('<div id="myCarousel" class="carousel slide"><ol class="carousel-indicators"><li data-target="#myCarousel" data-slide-to="0" class="active"></li><li data-target="#myCarousel" data-slide-to="1"></li></ol>   <div class="carousel-inner"><div class="item active"><img src=' + trendMap + ' /> </div><div class="item"><img src=' + historyMap + ' width="360" height="140" style="margin-bottom:-48px"/></div></div><a class="carousel-control left" href="#myCarousel" data-slide="prev">&lsaquo;</a><a class="carousel-control right" href="#myCarousel" data-slide="next">&rsaquo;</a></div><hr><div style="text-align: left; color: white"><span><small>Market Cap: ' + marketCap + '</small></span><br><span><small>IPO Year: ' + ipoYear + '</small></span><br><span><small>Sector: ' + sector + '</small></span><br><span><small>Industry: ' + industry + '</small></span><br><span><small>Summary Quote: <a href="' + summaryQuote + '" style="color: #FFC107"> View</a></small></span></div>');
+                        });
+
+                        break;
+
                     default:
                         $("#messages").text(data.result.fulfillment.speech);
                     }
@@ -238,7 +481,7 @@
             if (isNaN(latitude) || isNaN(longitude)) {
                 return;
             }
-            console.log(latitude + " " + longitude);
+
 
             var myLatLng = {
                 lat: latitude,
@@ -265,7 +508,7 @@
 
     <!-- Custom styles for this template -->
     <link href="css/style.css" rel="stylesheet">
-    <link href="css/font-awesome.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" rel="stylesheet">
 
 
     <!-- Just for debugging purposes. Don't actually copy this line! -->
@@ -293,6 +536,7 @@
                 </button>
 
                 <img src="img/robot-icon.png" width="70%" class="img-responsive">
+
             </div>
             <div class="navbar-collapse collapse navbar-right">
                 <ul class="nav navbar-nav">
@@ -311,8 +555,12 @@
             <div class="row">
                 <div class="col-lg-8 col-lg-offset-2">
                     <h1>Welcome to my ChatBot application!</h1>
-                    <h4 style="color: white">I am a smart robot was designed to answer the basic questions that you have!</h4>
-                    <h5>Notices: Chatbot now support weather related questions!</h5>
+                </div>
+
+                <div class="col-lg-8 col-lg-offset-2" style="height: 80px">
+                    <span id="typedString" class="element" style="display: block; height:20px"></span>
+
+                    <span id="button-cat-group" style="display: block;height: 60px"></span>
                 </div>
 
                 <div class="col-lg-4">
@@ -462,7 +710,7 @@
             <div class="row">
                 <div class="col-lg-8 col-lg-offset-2">
                     <img src="img/me.png" />
-                    <p>My name is Tony Liu, and I am a Java Developer with 5 years experiences. I love learning new knowledge, and I love to play with my friends and games. This is a simple ai application, you can ask many basic questions. I am sorry some functionalities are not working right now. Remember this application only for personal use only. You can try a lot of interesting things! If you are interested in this application, please go ahead and take a look at my GitHub. Welcome fork!</p>
+                    <p>My name is Tony Liu, and I am a Java Developer with 5 years experiences. I love learning new knowledge, and I love to play with my friends and games. This is a simple ai application, you can ask many basic questions. I am sorry some functionalities are not working right now. Remember this application only for personal use only. You can try a lot of interesting things! If you are interested in this application, please go ahead and take a look at my GitHub. Happy coding!</p>
                     <h4><br/>Tony Liu</h4>
                     <p>Jave Developer</p>
                 </div>
@@ -496,7 +744,11 @@
 
     <!-- Bootstrap core JavaScript
     ================================================== -->
+    <!-- google map api -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB7t0qSYYqoi3fpX0rBnuhiI-OXdw9mTFs&callback=initMap" async defer></script>
+    <!-- chat.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.1.4/Chart.min.js"></script>
+    <!-- Jquery csv file plugin -->
     <script src="js/bootstrap.min.js"></script>
     <script src="js/retina-1.1.0.js"></script>
     <script src="js/jquery.hoverex.min.js"></script>

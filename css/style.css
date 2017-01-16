@@ -475,3 +475,25 @@ csmall2 {
     border-radius: 10px;
     border-color: bisque
 }
+
+.chart-show-class {
+    position: relative;
+    left: 15px;
+    height: 332px;
+}
+
+.detailTable {
+    border: 1px solid;
+    border-radius: 5px;
+    border-color: bisque;
+    color: whitesmoke;
+}
+
+
+/* for carousel left */
+
+.carousel-control {
+    position: absolute;
+    top: 40%;
+    bottom: 40%;
+}
