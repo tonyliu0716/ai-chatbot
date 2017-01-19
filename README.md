@@ -6,4 +6,4 @@ Please access: https://tonyliu0716.github.io/ai-chatbot/ .
 Updated: now support weather related questions, currency exchange rates, stock quotes search.
 
 Structure:
-https://cloud.githubusercontent.com/assets/12025010/22117960/860163b8-de3b-11e6-8771-656d180cbf03.jpg
+![alt tag](https://cloud.githubusercontent.com/assets/12025010/22117960/860163b8-de3b-11e6-8771-656d180cbf03.jpg)
