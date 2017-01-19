@@ -433,7 +433,7 @@
             case "get-current-weather":
                 var parameters = data.result.parameters;
                 var weatherUrl = "http://api.openweathermap.org/data/2.5/weather?q=";
-                var weatherKey = "&appid=7a89a0b3f307a97cfb724e1029dbcee8";
+                var weatherKey = "&appid=7a89a0b3f307a97cfb724e1029dbcee8&units=imperial";
                 // weather api is involved here:
                 if (parameters.hasOwnProperty('geo-city') && parameters['geo-city'] != '') {
                     $.ajax({
