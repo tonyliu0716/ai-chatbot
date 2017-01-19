@@ -9,12 +9,13 @@
 
     <title>ChatBot</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-
+    <script type="text/javascript" src="js/typed.js"></script>
     <script type="text/javascript">
         // Access Token parameters from API.AI: Smart bot
         var accessToken = "402d9bfa8aa94119acd297154d34bc47";
         var baseUrl = "https://api.api.ai/v1/";
         $(document).ready(function () {
+
 
 
             $("#input").keypress(function (event) {
@@ -37,7 +38,78 @@
                 }
 
             });
+
+            //for typing.js default
+            $(".element").typed({
+                strings: ["<h4 style='color: white; text-align: center'>My name is ^400 ChatBot. </h4>", "<h4 style='color: white'>Designed to answer the basic questions ^500 that you have!</h4>", "<h4 style='color: white'>Now I support :</h4>^1000", "<h4 style='color:white'>Weather ^500 related questions,</h4>", "<h4 style='color:white'>Currency Exchange Rates ^500 related questions,</h4>", "<h4 style='color:white'>Stock Quotes Search.</h4>", "<h4 style='color:white'>Try it out today!</h4>"],
+                contentType: 'html',
+                typeSpeed: 7,
+                showCursor: false,
+                callback: function () {
+                    $("#button-cat-group").css("visibility", "visible");
+                    $("#button-cat-group").append("<button onClick='conButton()' type='button' class='btn btn-secondary'><i class='fa fa-comments-o'></i>&nbsp;Conversation</button>  <button onClick='weatherButton()' type='button' class='btn btn-success'><i class='fa fa-sun-o'></i>&nbsp;Weather</button>  <button onClick='currencyButton()' type='button' class='btn btn-info'><i class='fa fa-usd'></i>&nbsp;Currency</button> <button onClick='stockButton()' type='button' class='btn btn-warning'><i class='fa fa-line-chart'></i>&nbsp;Stock Quotes</button> <button onClick='fixErrorButton()' id='error-fix' class='btn btn-danger' type='button'><i class='fa fa-shield'></i>&nbsp;Fix Error</button>");
+                    $("#button-cat-group").hide().fadeIn(1500);
+
+                }
+            });
+
+
+
         });
+
+
+        // conversation button and more start from here======================
+        function conButton() {
+            $(".element").typed('reset');
+            $(".element").typed({
+                strings: ["<h4 style='color: white; text-align: center'>Example: How are you or I have a dog. </h4>"],
+                contentType: 'html',
+                typeSpeed: 7,
+                showCursor: false
+            });
+        }
+
+        function weatherButton() {
+            $(".element").typed('reset');
+            $(".element").typed({
+                strings: ["<h4 style='color: white; text-align: center'>Example: How's the weather like in Dallas? </h4>"],
+                contentType: 'html',
+                typeSpeed: 7,
+                showCursor: false
+            });
+        }
+
+        function currencyButton() {
+            $(".element").typed('reset');
+            $(".element").typed({
+                strings: ["<h4 style='color: white; text-align: center'>Example: Currency exchange rates, please. </h4>"],
+                contentType: 'html',
+                typeSpeed: 7,
+                showCursor: false
+            });
+        }
+
+        function stockButton() {
+            $(".element").typed('reset');
+            $(".element").typed({
+                strings: ["<h4 style='color: white; text-align: center'>Example: Stock quotes, please. </h4>"],
+                contentType: 'html',
+                typeSpeed: 7,
+                showCursor: false
+            });
+        }
+
+        function fixErrorButton() {
+            $(".element").typed('reset');
+            $(".element").typed({
+                strings: ["<h4 style='color: white; text-align: center'>Example: (Response)Weather API is not working right now.</h4>", "<h4 style='color: white; text-align: center'>Clicking 'Load unsafe script' on the right-hand sidebar of the address. &nbsp;<i class='fa fa-shield'></i><i class='fa fa-star-o'></i></h4>"],
+                contentType: 'html',
+                typeSpeed: 7,
+                showCursor: false
+            });
+        }
+
+        //conversation button ends here=========================================
         var recognition;
 
         function startRecognition() {
@@ -90,8 +162,14 @@
         function send() {
             var text = $("#input").val();
             //before send method, clear the weather report and map details
-            $("#api-result-show").hide();
-            $("#api-map-show").hide();
+            $("#api-result-show").empty();
+            $("#api-result-show").removeClass();
+            $("#myChart").removeClass();
+            $("#api-map-show").empty();
+            $("#api-map-show").removeClass();
+
+            //console.log($("#api-map-show").attr("class").split(' '));
+
             $.ajax({
                 type: "POST",
                 url: baseUrl + "query?v=20150910",
@@ -112,12 +190,221 @@
                         if (data.result.parameters['geo-city'] !== '') {
                             //we already have city name
                             speech = data.result.fulfillment.speech;
+                            $("#api-result-show").append('<img src="img/weather.png" class="img-responsive"><hr><h5>City Name: <span id="weather-city"></span></h5><h5>Longtitude: <span id="weather-city-lon"></span></h5><h5>Latitude: <span id="weather-city-lat"></span></h5><h5>Temperature: <span id="weather-temp"></span></h5><h5>Max Temp: <span id="weather-maxTemp"></span></h5><h5>Min Temp: <span id="weather-minTemp"></span></h5><h5>Pressure: <span id="weather-pressure"></span></h5><h5>Description: <span id="weather-desc"></span></h5><h5>Humidity: <span id="weather-humidity"></span></h5>');
+                            $("#api-result-show").addClass("api-result-show-class");
                             differApi(data);
 
                         } else {
                             // should response 'In what city?'
                             $("#messages").text(data.result.fulfillment.speech);
                         }
+
+                        break;
+                        // case "get-current-weather ends here"----------------
+                    case "calculator.currency":
+                        $("#messages").text(data.result.fulfillment.speech);
+
+                        $("#api-result-show").append('<br><br><h4 style="color:white">Currency Exchange</h4><hr><div class="input-group"><span class="input-group-addon" id="Amount">Amount</span><input type="text" id="currency_for" class="form-control" placeholder="Input your amount here"><span class="input-group-addon" style="width:0px; padding-left:0px; padding-right:0px; border:none;"></span><select id="currency-country-for" class="form-control"><option value="USD">USD</option><option value="EUR">EUR</option><option value="CNY">CNY</option><option value="AUD">AUD</option><option value="HKD">HKD</option><option value="HRK">HRK</option><option value="DKK">DKK</option><option value="CHF">CHF</option><option value="GBP">GBP</option><option value="CAD">CAD</option>   </select></div><br><button type="button" class="btn btn-info" id="transfer_money" style="width:60px"><i class="fa fa-exchange"></i></button><hr><div class="input-group"><span class="input-group-addon" id="Amount">Amount</span><input type="text" id="currency_to" class="form-control" placeholder="Here is the amount you expected."><span class="input-group-addon" style="width:0px; padding-left:0px; padding-right:0px; border:none;"></span><select id="currency-country-to" class="form-control"><option value="USD">USD</option><option value="EUR">EUR</option><option value="CNY">CNY</option><option value="AUD">AUD</option><option value="HKD">HKD</option><option value="HRK">HRK</option><option value="CHF">CHF</option><option value="GBP">GBP</option><option value="DKK">DKK</option><option value="CAD">CAD</option>    </select></div>');
+
+                        //click event for 'transfer' button in Currency Exchange:
+                        $("#transfer_money").click(function () {
+                            //$("#api-map-show").empty();
+                            var amount = $("#currency_for").val();
+                            if (amount != "") {
+                                //call api:
+                                var currencyFor = $("#currency-country-for").val();
+                                var currencyTo = $("#currency-country-to").val();
+                                $.ajax({
+                                    type: "GET",
+                                    url: "http://rate-exchange-1.appspot.com/currency?from=" + currencyFor + "&to=" + currencyTo,
+                                    dataType: "jsonp",
+                                    crossDomain: true,
+                                    success: function (data) {
+                                        $("#currency_to").val(data.rate * parseInt($("#currency_for").val()));
+                                        //show chat.js on div "api-map-show"
+
+
+                                        // array for country
+                                        var countryArray = ['USD', 'EUR', 'CNY', 'AUD', 'HKD', 'HRK', 'DKK', 'CHF', 'GBP', 'CAD'];
+
+
+                                        // array for rates
+                                        var ratesArray = [];
+
+                                        function getData() {
+                                            var defer = $.Deferred();
+                                            //get data from api.fixer.io
+                                            $.ajax({
+                                                type: 'GET',
+                                                url: "http://api.fixer.io/latest?base=" + currencyFor,
+                                                dataType: 'jsonp',
+                                                crossDomain: true,
+
+                                                success: function (data) {
+                                                    //prepare the container
+                                                    $("#api-map-show").empty();
+                                                    $("#api-map-show").removeClass();
+                                                    //console.log(currencyArray);
+                                                    //find the value for country:
+                                                    for (var i = 0; i < countryArray.length; i++) {
+                                                        if (typeof data.rates[countryArray[i]] == 'undefined') {
+                                                            ratesArray.push(1);
+                                                        } else {
+                                                            ratesArray.push(data.rates[countryArray[i]]);
+                                                        }
+                                                    }
+                                                    defer.resolve(ratesArray);
+                                                },
+                                                error: function () {
+                                                    console.log("Involved api.fixer.io caused a error...");
+                                                }
+                                            });
+                                            return defer.promise();
+
+                                        }
+                                        //when getData function is done, we start to create the chart:
+                                        $.when(getData()).done(function (data) {
+
+                                            $("#api-map-show").addClass("col-lg-4");
+                                            $("#api-map-show").append('<canvas id="myChart" class="chart-show-class"></canvas>');
+                                            var ctx = document.getElementById("myChart").getContext('2d');
+                                            var myChart = new Chart(ctx, {
+                                                type: 'bar',
+                                                data: {
+                                                    labels: countryArray,
+                                                    datasets: [{
+                                                        label: "1 " + currencyFor,
+                                                        hoverBackgroundColor: "rgba(232,105,90,0.8)",
+                                                        data: ratesArray,
+                                                        backgroundColor: "rgb(160, 237, 176)"
+                                                }]
+                                                },
+                                                options: {
+                                                    maintainAspectRatio: false,
+                                                    responsive: true,
+                                                    legend: {
+                                                        labels: {
+                                                            fontColor: "white",
+                                                            fontSize: 18
+                                                        }
+                                                    },
+                                                    scales: {
+                                                        yAxes: [{
+                                                            ticks: {
+                                                                fontColor: "white",
+                                                                fontSize: 10,
+                                                                stepSize: 1,
+                                                                beginAtZero: true
+                                                            }
+                                            }],
+                                                        xAxes: [{
+                                                            ticks: {
+                                                                fontColor: "white",
+                                                                fontSize: 10,
+                                                                stepSize: 2,
+                                                                beginAtZero: true
+                                                            }
+                                            }]
+                                                    }
+                                                }
+                                            });
+                                            //
+                                            $("#api-map-show").css("height", "330px");
+                                        });
+
+                                    },
+                                    error: function () {
+                                        $("#messages").text("Seems the api has something wrong..");
+                                    }
+                                });
+
+
+
+                            }
+
+                        });
+                        break;
+                        // case "calculator.currency" ends here========================
+
+
+                        // here is get-stock-quoteds begin =============================
+                    case "get-stock-quotes":
+                        //clear the api-map-show area:
+                        $("#api-map-show").empty();
+
+                        //console.log("I am stock quotes...");
+                        $("#messages").text(data.result.fulfillment.speech);
+                        $("#api-result-show").append('<br><br><h4 style="color:white">Stock Quotes Search</h4><strong style="color:aquamarine">Support more than 3000 companies!</strong><hr><div class="input-group"><span class="input-group-addon">Code</span><input type="text" name="team" id="company" class="form-control" placeholder="Input your amount here" list="company-list"><span class="input-group-addon" style="width:0px; padding-left:0px; padding-right:0px; border:none;"></span><datalist id="company-list"></datalist><span class="input-group-btn"><button id="search-quotes" class="btn btn-info" type="button"><i class="fa fa-search"></i></button></span></div><br><button id="clear" type="button" class="btn btn-warning">Clear</button>');
+
+                        //start to call the ajax method then get a list of company.
+                        var companyName = [];
+                        var companySymbol = [];
+                        var companyAllData = [];
+                        $.ajax({
+                            type: "GET",
+                            url: "https://cdn.rawgit.com/tonyliu0716/ai-chatbot/gh-pages/companylist.json",
+                            crossDomain: true,
+                            dataType: "json",
+                            cache: true,
+                            success: function (data) {
+                                companyAllData = data;
+                                for (var i = 0; i < data.length; i++) {
+                                    var company = data[i];
+                                    companyName.push(company.Name);
+                                    companySymbol.push(company.Symbol);
+                                }
+                                var str = '';
+                                //the second for loop for insert the <option> element into datalist
+                                for (var i = 0; i < companyName.length; i++) {
+                                    str += ('<option value="' + companySymbol[i] + " - " + companyName[i] + '" />');
+                                }
+                                $("#company-list").html(str);
+                            },
+                            error: function () {
+                                $("#messages").text("Some errors happen when I tried to read json file.");
+                            }
+                        });
+
+                        //if the user click the clear button
+                        $("#clear").click(function () {
+                            $("#company").val('');
+                        });
+                        //Once the user click the button:
+                        $("#search-quotes").click(function () {
+                            $("#api-map-show").empty();
+
+                            var fullCompany = $("#company").val();
+                            var sign = '';
+                            for (var i = 0; i < fullCompany.length; i++) {
+                                if (fullCompany[i] !== ' ') {
+                                    sign += fullCompany[i];
+                                } else {
+                                    break;
+                                }
+                            }
+                            var marketCap = '';
+                            var ipoYear = '';
+                            var sector = '';
+                            var industry = '';
+                            var summaryQuote = '';
+                            //find all the information for the selected company:
+                            for (var i = 0; i < companyAllData.length; i++) {
+                                if (companyAllData[i].Symbol == sign) {
+                                    marketCap = companyAllData[i].MarketCap;
+                                    ipoYear = companyAllData[i].IPOyear;
+                                    sector = companyAllData[i].Sector;
+                                    industry = companyAllData[i].industry;
+                                    summaryQuote = companyAllData[i]['Summary Quote'];
+                                    console.log(marketCap + ", " + ipoYear + ", " + sector + ", " + industry + ", " + summaryQuote);
+                                    break;
+                                }
+                            }
+                            //now start to load the api-map-show div
+                            var trendMap = "http://chart.finance.yahoo.com/t?s=" + sign + "&lang=en-US&region=US&width=360&height=140";
+                            var historyMap = "http://chart.finance.yahoo.com/z?s=" + sign;
+                            $("#api-map-show").addClass("col-lg-4");
+                            $("#api-map-show").append('<div id="myCarousel" class="carousel slide"><ol class="carousel-indicators"><li data-target="#myCarousel" data-slide-to="0" class="active"></li><li data-target="#myCarousel" data-slide-to="1"></li></ol>   <div class="carousel-inner"><div class="item active"><img src=' + trendMap + ' /> </div><div class="item"><img src=' + historyMap + ' width="360" height="140" style="margin-bottom:-48px"/></div></div><a class="carousel-control left" href="#myCarousel" data-slide="prev">&lsaquo;</a><a class="carousel-control right" href="#myCarousel" data-slide="next">&rsaquo;</a></div><hr><div style="text-align: left; color: white"><span><small>Market Cap: ' + marketCap + '</small></span><br><span><small>IPO Year: ' + ipoYear + '</small></span><br><span><small>Sector: ' + sector + '</small></span><br><span><small>Industry: ' + industry + '</small></span><br><span><small>Summary Quote: <a href="' + summaryQuote + '" style="color: #FFC107"> View</a></small></span></div>');
+                        });
 
                         break;
 
@@ -160,8 +447,8 @@
                             $("#weather-city-lon").html(data.coord.lon);
                             $("#weather-city-lat").html(data.coord.lat);
                             $("#weather-temp").html(data.main.temp + " ºF");
-                            $("#weather-maxTemp").html(data.main.temp_max);
-                            $("#weather-minTemp").html(data.main.temp_min);
+                            $("#weather-maxTemp").html(data.main.temp_max + " ºF");
+                            $("#weather-minTemp").html(data.main.temp_min + " ºF");
                             $("#weather-pressure").html(data.main.pressure);
                             $("#weather-desc").html(data.weather[0].description);
                             $("#weather-humidity").html(data.main.humidity);
@@ -170,14 +457,12 @@
                             $("#api-result-show").hide().fadeIn(1200);
 
                             //after that, place the map into div
+                            $("#api-map-show").addClass("col-lg-4");
+                            $("#api-map-show").addClass("api-map-show-class");
                             $("#api-map-show").show();
-                            initMap();
-                            //add class div
-                            $("#api-map-show").css({
-                                "border": "1px solid",
-                                "border-radius": "10px",
-                                "border-color": "bisque"
-                            });
+
+                            setTimeout(initMap(), 1200);
+
                         },
                         error: function () {
                             setResponse("For some reasons, Weather API is not working right now.");
@@ -205,7 +490,7 @@
             if (isNaN(latitude) || isNaN(longitude)) {
                 return;
             }
-            console.log(latitude + " " + longitude);
+
 
             var myLatLng = {
                 lat: latitude,
@@ -232,7 +517,7 @@
 
     <!-- Custom styles for this template -->
     <link href="css/style.css" rel="stylesheet">
-    <link href="css/font-awesome.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" rel="stylesheet">
 
 
     <!-- Just for debugging purposes. Don't actually copy this line! -->
@@ -260,6 +545,7 @@
                 </button>
 
                 <img src="img/robot-icon.png" width="70%" class="img-responsive">
+
             </div>
             <div class="navbar-collapse collapse navbar-right">
                 <ul class="nav navbar-nav">
@@ -278,24 +564,19 @@
             <div class="row">
                 <div class="col-lg-8 col-lg-offset-2">
                     <h1>Welcome to my ChatBot application!</h1>
-                    <h4 style="color: white">I am a smart robot was designed to answer the basic questions that you have!</h4>
-                    <h5>Notices: Chatbot now support weather related questions!</h5>
+                </div>
+
+                <div class="col-lg-8 col-lg-offset-2" style="height: 80px">
+                    <span id="typedString" class="element" style="display: block; height:20px"></span>
+
+                    <span id="button-cat-group" style="display: block;height: 60px"></span>
                 </div>
 
                 <div class="col-lg-4">
                     <div id="api-result-show">
-                        <img src="img/weather.png" class="img-responsive">
 
-                        <hr>
-                        <h5>City Name: <span id="weather-city"></span></h5>
-                        <h5>Longtitude: <span id="weather-city-lon"></span></h5>
-                        <h5>Latitude: <span id="weather-city-lat"></span></h5>
-                        <h5>Temperature: <span id="weather-temp"></span></h5>
-                        <h5>Max Temp: <span id="weather-maxTemp"></span></h5>
-                        <h5>Min Temp: <span id="weather-minTemp"></span></h5>
-                        <h5>Pressure: <span id="weather-pressure"></span></h5>
-                        <h5>Description: <span id="weather-desc"></span></h5>
-                        <h5>Humidity: <span id="weather-humidity"></span></h5>
+
+
                     </div>
                 </div>
 
@@ -439,8 +720,8 @@
         <div class="container centered">
             <div class="row">
                 <div class="col-lg-8 col-lg-offset-2">
-                    <i class="fa fa-commenting-o"></i>
-                    <p>My name is Tony Liu, and I am a Java Developer with 5 years experiences. I love learning new knowledge, and I love to play with my friends and games. This is a simple ai application, you can ask many basic questions. I am sorry some functionalities are not working right now. Remember this application only for personal use only. You can try a lot of interesting things! If you are interested in this application, please go ahead and take a look at my GitHub. Welcome fork!</p>
+                    <img src="img/me.png" />
+                    <p>My name is Tony Liu, and I am a Java Developer with 5 years experiences. I love learning new knowledge, and I love to play with my friends and games. This is a simple ai application, you can ask many basic questions. I am sorry some functionalities are not working right now. Remember this application only for personal use only. You can try a lot of interesting things! If you are interested in this application, please go ahead and take a look at my GitHub. Happy coding!</p>
                     <h4><br/>Tony Liu</h4>
                     <p>Jave Developer</p>
                 </div>
@@ -458,7 +739,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-4 col-lg-offset-4">
-                    <h4 class="text-center">View My Github Repositories</h4>
+                    <h4 class="text-center">View My Github Repositories to see more java projects</h4>
                     <div class="hline-w"></div>
                     <p class="text-center">
                         <a href="https://github.com/tonyliu0716"><i class="fa fa-github"></i></a>
@@ -474,7 +755,11 @@
 
     <!-- Bootstrap core JavaScript
     ================================================== -->
+    <!-- google map api -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB7t0qSYYqoi3fpX0rBnuhiI-OXdw9mTFs&callback=initMap" async defer></script>
+    <!-- chat.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.1.4/Chart.min.js"></script>
+    <!-- Jquery csv file plugin -->
     <script src="js/bootstrap.min.js"></script>
     <script src="js/retina-1.1.0.js"></script>
     <script src="js/jquery.hoverex.min.js"></script>
